@@ -17,7 +17,10 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const sanitized = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const sanitized = file.originalname
+      .toLowerCase()
+      .replace(/[^a-z0-9.\-_]/g, "_");
+
     cb(null, `${Date.now()}-${sanitized}`);
   },
 });
@@ -36,9 +39,15 @@ router.get("/", async (req, res) => {
 
 router.post("/", upload.single("image"), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Imagem não enviada" });
+    }
+
     const name =
       req.body.name ||
-      req.file.originalname.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
+      req.file.originalname
+        .replace(/\.[^/.]+$/, "")
+        .replace(/_/g, " ");
 
     const card = await Card.create({
       name,
