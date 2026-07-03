@@ -1,4 +1,4 @@
-# 💜🔮 mafuyus backend 🔮
+# 💜🔮 mafuyu's backend 🔮
 backend developed for the mafuyu cards project, responsible for managing and serving all card data for mafuyu asahina from project sekai. this api handles authentication-free data operations, image uploads, and persistence using a modern node.js architecture. 💜
 
 ---
@@ -74,7 +74,6 @@ to run the api on your machine:
 ### 1. clone the repository
 ```bash
 git clone https://github.com/scriptlver/mafuyus-backend.git
-cd mafuyus-backend
 ```
 
 ### 2. install dependencies
@@ -97,5 +96,3 @@ npm start
 * **data management**: full persistence handled by **mongodb**.
 * **testing**: all crud operations were validated via **postman** to ensure stability and reliability.
 * **purpose**: project developed for portfolio, serving as the data layer for the mafuyus frontend.
-
-design by scriptlver 💜
