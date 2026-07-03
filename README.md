@@ -3,6 +3,19 @@ backend developed for the mafuyu cards project, responsible for managing and ser
 
 ---
 
+## 🔗 live demo
+* **💜 frontend:** [mafuyus-frontend.vercel.app](https://mafuyus-frontend.vercel.app/)
+* **🔮 backend api:** [mafuyus-backend.onrender.com](https://mafuyus-backend.onrender.com)
+
+---
+
+## 🔮 preview
+<p align="center">
+  <img src="./src/images/preview.png" alt="mafuyu's backend preview" width="700"/>
+</p>
+
+---
+
 ## 💜 overview
 the api was built with a focus on **simplicity and reliability**, providing clean routes for card management and serving as the data layer for the mafuyus frontend.
 
@@ -43,6 +56,8 @@ mafuyus-backend/
 │   ├── config/
 │   │   └── database/
 │   │       └── connection.js
+│   ├── images/
+│   │   └── preview.png
 │   ├── middleware/
 │   ├── models/
 │   │   └── Card.js
