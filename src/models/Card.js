@@ -9,6 +9,9 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  imagePublicId: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -1,31 +1,26 @@
 const express = require("express");
 const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
+const streamifier = require("streamifier");
+const cloudinary = require("../config/cloudinary");
 const Card = require("../models/Card");
 
 const router = express.Router();
 
-const uploadDir = path.join(process.cwd(), "uploads");
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const sanitized = file.originalname
-      .toLowerCase()
-      .replace(/[^a-z0-9.\-_]/g, "_");
-
-    cb(null, `${Date.now()}-${sanitized}`);
-  },
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
+
+function uploadToCloudinary(buffer) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "mafuyus" },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+}
 
 router.get("/", async (req, res) => {
   try {
@@ -43,15 +38,16 @@ router.post("/", upload.single("image"), async (req, res) => {
       return res.status(400).json({ error: "Imagem não enviada" });
     }
 
+    const result = await uploadToCloudinary(req.file.buffer);
+
     const name =
       req.body.name ||
-      req.file.originalname
-        .replace(/\.[^/.]+$/, "")
-        .replace(/_/g, " ");
+      req.file.originalname.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
 
     const card = await Card.create({
       name,
-      image: req.file.filename,
+      image: result.secure_url,
+      imagePublicId: result.public_id,
     });
 
     res.status(201).json(card);
@@ -70,7 +66,9 @@ router.put("/:id", upload.single("image"), async (req, res) => {
     }
 
     if (req.file) {
-      updateData.image = req.file.filename;
+      const result = await uploadToCloudinary(req.file.buffer);
+      updateData.image = result.secure_url;
+      updateData.imagePublicId = result.public_id;
     }
 
     const card = await Card.findByIdAndUpdate(req.params.id, updateData, {
@@ -86,6 +84,12 @@ router.put("/:id", upload.single("image"), async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
+    const card = await Card.findById(req.params.id);
+
+    if (card && card.imagePublicId) {
+      await cloudinary.uploader.destroy(card.imagePublicId);
+    }
+
     await Card.findByIdAndDelete(req.params.id);
     res.json({ message: "Card deletado" });
   } catch (error) {
@@ -96,6 +100,14 @@ router.delete("/:id", async (req, res) => {
 
 router.delete("/", async (req, res) => {
   try {
+    const cards = await Card.find();
+
+    for (const card of cards) {
+      if (card.imagePublicId) {
+        await cloudinary.uploader.destroy(card.imagePublicId);
+      }
+    }
+
     await Card.deleteMany();
     res.json({ message: "Todos os cards deletados" });
   } catch (error) {
